@@ -105,7 +105,7 @@ class OLED {
 
     // display.setTextColor(WHITE);
     display.setTextSize(1);
-    display.setCursor(0,20);
+    display.setCursor(0,10);
     display.println(data); 
 
     display.display();

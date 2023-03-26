@@ -2,6 +2,8 @@
 #define myWifi_h
 
 #include "Arduino.h"
+#include "OLED.h"
+OLED myOled;
 
 #include <WiFi.h>
 #include "time.h"
@@ -12,11 +14,12 @@
 // const String ssidList[3] = {"JangSik의 iPhone", "novashin2", "senWifi_FreeXXX_2.4G"};
 // const String passList[3] = {"0311shin", "0311shin", "youngdong 123!"};
 const String ssidList[3] = {"Galaxy A123642", "novashin2", "senWifi_FreeXXX_2.4G"};
-const String passList[3] = {"non", "0311shin", "youngdong 123!"};
+const String passList[3] = {"", "0311shin", "youngdong 123!"};
 
 const char* _serverUrlLive = "http://geo.pionman.com:5000/airCon/setAirValues";
 const char* _serverUrlDev = "http://192.168.0.19:5000/airCon/setAirValues";
 const char* serverUrl = _serverUrlLive;
+const char * serverDataUrl = "http://geo.pionman.com:5000/airCon/getAirAlarm";
 
 class myWifi {
   public:
@@ -31,7 +34,7 @@ class myWifi {
     bool begin(const char* ssid, const char* password) {
       WiFi.begin(ssid, password);
       int retry = 0;
-      while (retry < 3 && WiFi.status() != WL_CONNECTED) {
+      while (retry < 5 && WiFi.status() != WL_CONNECTED) {
         delay(1000);
         retry++;
         Serial.println("Connecting to WiFi...");
@@ -50,18 +53,21 @@ class myWifi {
       for(int idx = 0; idx < sizeof(ssidList); idx++) {
         String _ssid = String(ssidList[idx]);
         if(idx == 2) {
-          for(int idx2 = 0; idx2 < 100; idx2++) {
+          for(int idx2 = 1; idx2 < 100; idx2++) {
             char str[30];
             sprintf(str, "senWifi_Free%02d_2.4G", idx2);
             //Serial.print(str);
             _ssid = String(str);
             //Serial.println("   gen SSID = " + _ssid);
+            
+            myOled.displaySensorData("Try Connect ", _ssid.c_str());
             bool ret = begin(_ssid.c_str(), String(passList[idx]).c_str()); 
             if(ret)
               return true;
           }
         }
 
+        myOled.displaySensorData("Try Connect ", _ssid.c_str());
         bool ret = begin(_ssid.c_str(), String(passList[idx]).c_str()); 
         if(ret) {
           // if(idx == 1 )
@@ -72,7 +78,7 @@ class myWifi {
     }
 
     DynamicJsonDocument getAirAlarm(char * device_id = "non") {
-      String url = "http://192.168.0.19:5000/airCon/getAirAlarm" + String("?deviceId=") + String(device_id);
+      String url = serverDataUrl + String("?deviceId=") + String(device_id);
       HTTPClient http;
       Serial.println(url);
 
